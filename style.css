@@ -1,24 +1,32 @@
 :root{--bg:#000;--fg:#f2f0ff;--dim:#9a97b8;--accent:#ffc22e;--accent2:#ff6a0f}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
 a{color:var(--accent)}
-.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.wrap{max-width:760px;width:100%;margin:0 auto;padding:0 24px;flex:1;display:flex;flex-direction:column}
 header.nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
 header.nav a{color:var(--dim);text-decoration:none;margin-left:20px;font-size:15px}
 header.nav a:hover{color:var(--fg)}
 .brand{display:flex;align-items:center;gap:10px;color:var(--fg)!important;font-weight:600;margin:0!important}
 .brand img{width:28px;height:28px}
-.hero{text-align:center;padding:56px 0 40px}
-.hero img.bh{width:220px;height:220px}
-.hero h1{font-size:clamp(34px,6vw,52px);line-height:1.1;margin:18px 0 12px}
+.hero{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 0 0}
+.hero{--w:min(520px,78vw)}
+/* lockup proportions measured from the approved store art, W = wordmark width */
+.hero .bh{display:block;width:calc(var(--w)*.533);height:calc(var(--w)*.533);margin:0 auto;--spd:.2}
+.logo circle[style*="--end"]{animation:spin linear infinite;stroke-linecap:round}
+@keyframes spin{to{stroke-dashoffset:var(--end)}}
+@media (prefers-reduced-motion:reduce){.logo circle{animation:none!important}}
+.hero .wm{display:block;width:calc(var(--w)*1.0136);height:auto;margin:calc(var(--w)*-.0503) auto 0;position:relative}
+.hero h1{font-size:clamp(20px,3.4vw,28px);line-height:1.1;margin:26px 0 30px;font-weight:500;color:var(--dim)}
 .hero p{color:var(--dim);font-size:19px;max-width:560px;margin:0 auto 28px}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a0b00;font-weight:600;padding:13px 26px;border-radius:999px;text-decoration:none}
 .btn.off{opacity:.6;pointer-events:none}
 section{padding:36px 0}
 h2{font-size:26px;margin:0 0 14px}
-footer{border-top:1px solid #1c1a2e;color:var(--dim);font-size:14px;padding:26px 0 48px;text-align:center}
-.doc h1{font-size:34px}.doc h2{margin-top:30px}
+footer{margin-top:auto;color:var(--dim);font-size:14px;padding:26px 0 28px;text-align:center}
+.doc h1{font-size:34px;line-height:1.15;margin:22px 0 10px}
+.doc h2{font-size:20px;line-height:1.25;margin:26px 0 6px}
+.doc p{margin:0 0 10px}
 
 /* static star field + corner glows (from the extension welcome page) */
 body { background-image:
@@ -122,3 +130,27 @@ body { background-image:
   radial-gradient(1px 1.4px at 29% 9%, #cfd8ff, transparent);
   background-attachment: fixed; }
 body{background-attachment:fixed}
+
+/* feedback form */
+.fb{display:flex;flex-direction:column;gap:8px;max-width:560px;margin:6px 0 8px}
+.fb label:first-child{margin-top:0}
+.fb label{font-size:15px;color:var(--fg);margin-top:10px}
+.fb label span{color:var(--dim)}
+.fb textarea,.fb input[type=email]{width:100%;font:inherit;color:var(--fg);background:rgba(255,255,255,.04);border:1px solid #2a2745;border-radius:10px;padding:12px 14px;outline:none;resize:vertical}
+.fb textarea::placeholder,.fb input::placeholder{color:#6f6c8e}
+.fb textarea:focus,.fb input[type=email]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,194,46,.15)}
+.fb .btn{align-self:flex-start;margin-top:14px;border:0;font:inherit;font-weight:600;cursor:pointer}
+.fb .btn:disabled{opacity:.6;cursor:default}
+.fb .trap{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+#status{min-height:1.5em;margin:6px 0 0;font-size:15px;color:var(--dim)}
+#status.ok{color:#8fe3a0}#status.err{color:#ff8a7a}
+
+/* side-by-side lockup header (inner pages): planet box = 7 cells, gap = 2 cells, cell = wordmark height / 3 */
+.top{padding:30px 0 6px;text-align:center}
+.lockup{--H:min(26px,6.2vw);display:inline-flex;align-items:center;gap:calc(var(--H)*2/3);padding-left:calc(var(--H)*7/3*.225);text-decoration:none}
+.lockup .mark{flex:none;display:block;width:calc(var(--H)*7/3);height:calc(var(--H)*7/3);transform:scale(1.45);overflow:visible;--spd:.2}
+.lockup .wm{display:block;width:calc(var(--H)*10.218);height:auto}
+
+/* browser windows funneled into the black hole (landing page): canvas behind the content */
+canvas.floaters{position:fixed;left:0;top:0;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1}
