@@ -3,5 +3,6 @@
 > Tabvergence is a Chrome extension that gathers every open tab from the site you're on, across all windows, into one tidy window. No account, no ads, no tracking, and nothing leaves your browser.
 
 - [Home](https://tabvergence.com/): what it is
+- [Chrome Web Store](https://chromewebstore.google.com/detail/tabvergence/bmgbmdhngkfeklbcmkpigkflabjfnmgb): install the extension
 - [How it works and FAQ](https://tabvergence.com/about.html): usage, settings and common questions
 - [Privacy policy](https://tabvergence.com/privacy.html): no data is collected, sent or shared
