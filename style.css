@@ -21,6 +21,8 @@ header.nav a:hover{color:var(--fg)}
 .hero p{color:var(--dim);font-size:19px;max-width:560px;margin:0 auto 28px}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a0b00;font-weight:600;padding:13px 26px;border-radius:999px;text-decoration:none}
 .btn.off{opacity:.6;pointer-events:none}
+.btn.store{line-height:1.2}
+@supports (text-box:trim-both cap alphabetic){.btn.store{text-box:trim-both cap alphabetic;padding:21px 32px}}
 section{padding:36px 0}
 h2{font-size:26px;margin:0 0 14px}
 footer{margin-top:auto;color:var(--dim);font-size:14px;padding:26px 0 28px;text-align:center}
