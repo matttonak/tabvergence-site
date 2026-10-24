@@ -114,10 +114,10 @@
   for (var i = 0; i < COUNT; i++) tabs.push(seed({}, 0, i === 0));   // the launch clock spaces them out, one at a time
 
   // #FFF4A8 (the black hole's pale yellow) mixed into a window's own hue: amount m (0..1) scaled by wt
-  function tint(h, sat, lig, alpha, m, wt) {
+  function tint(h, sat, lig, alpha, m, wt, to) {
     var S = sat / 100, L = lig / 100, c = S * Math.min(L, 1 - L);
     var f = function (n) { var k = (n + h / 30) % 12; return L - c * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
-    var base = [f(0), f(8), f(4)], to = [255, 244, 168], t = m * wt;
+    var base = [f(0), f(8), f(4)], t = m * wt; to = to || [255, 244, 168];
     return 'rgba(' + [0, 1, 2].map(function (i) { return Math.round(base[i] * 255 + (to[i] - base[i] * 255) * t); }).join(',') + ',' + alpha + ')';
   }
 
@@ -181,11 +181,23 @@
     // a soft glow on the nearer windows lifts them off the ones behind
     // as the window starts to stretch it turns to the black hole's pale yellow (#FFF4A8): outline and glow fully, the body part-way
     var tm = clamp((sw2 - 0.03) / 0.5, 0, 1); tm = tm * tm * (3 - 2 * tm);
-    ctx.shadowColor = tint(p.hue, 90, 60, (0.15 + 0.35 * p.depth).toFixed(2), tm, 1); ctx.shadowBlur = 4 + 12 * p.depth;
+    // the glow turns the black hole's orange (#FF8A1F) and swells: a wider, stronger halo, but still soft and see-through
+    var gA = (0.15 + 0.35 * p.depth) * (1 - tm) + 0.95 * tm;
+    ctx.shadowColor = tint(p.hue, 90, 60, gA.toFixed(2), tm, 1, [255, 138, 31]); ctx.shadowBlur = 4 + 12 * p.depth + 22 * tm;
     ctx.fillStyle = tint(p.hue, 55, 22, '.9', tm, 0.7);
     ctx.strokeStyle = tint(p.hue, 90, 72, '.95', tm, 1);
     ctx.lineWidth = 1.4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    var ga0 = ctx.globalAlpha;
     trace(shape.body, true); ctx.fill(); ctx.stroke();
+    // orange halo: starts a little before the tint and builds quickly; extra soft passes stack so it reads clearly while the window is still stretching
+    var gm = clamp((sw2 + 0.02) / 0.22, 0, 1); gm = gm * gm * (3 - 2 * gm);
+    if (gm > 0.01) {
+      ctx.globalAlpha = clamp(Math.max(ctx.globalAlpha, 0.55) * gm, 0, 1);
+      ctx.shadowColor = 'rgba(255,138,31,' + (0.9 * gm).toFixed(2) + ')';
+      var ss0 = ctx.strokeStyle; ctx.strokeStyle = 'rgba(255,138,31,1)';
+      for (var gp = 0; gp < 3; gp++) { ctx.shadowBlur = 14 + 16 * gp; ctx.stroke(); }
+      ctx.globalAlpha = ga0; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; ctx.strokeStyle = ss0; ctx.stroke();   // redraw the pale outline over the halo's seed stroke
+    }
     ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';   // glow on the outline only, not on every detail
     trace(shape.divider, false); ctx.stroke();
     ctx.fillStyle = ctx.strokeStyle;
