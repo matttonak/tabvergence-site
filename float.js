@@ -113,6 +113,14 @@
   locate();
   for (var i = 0; i < COUNT; i++) tabs.push(seed({}, 0, i === 0));   // the launch clock spaces them out, one at a time
 
+  // #FFF4A8 (the black hole's pale yellow) mixed into a window's own hue: amount m (0..1) scaled by wt
+  function tint(h, sat, lig, alpha, m, wt) {
+    var S = sat / 100, L = lig / 100, c = S * Math.min(L, 1 - L);
+    var f = function (n) { var k = (n + h / 30) % 12; return L - c * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+    var base = [f(0), f(8), f(4)], to = [255, 244, 168], t = m * wt;
+    return 'rgba(' + [0, 1, 2].map(function (i) { return Math.round(base[i] * 255 + (to[i] - base[i] * 255) * t); }).join(',') + ',' + alpha + ')';
+  }
+
   function drawTab(p) {
     var k = clamp((p.r - R0) / 280, 0.08, 1);              // 1 = far, small = nearly swallowed
     var sq = Math.pow(k, 0.8);
@@ -171,9 +179,11 @@
     ctx.save();
     ctx.globalAlpha = clamp(fade(p.r) * (0.35 + 0.55 * k) * TAB_ALPHA * p.dim, 0, 1);
     // a soft glow on the nearer windows lifts them off the ones behind
-    ctx.shadowColor = 'hsla(' + p.hue + ', 90%, 60%, ' + (0.15 + 0.35 * p.depth).toFixed(2) + ')'; ctx.shadowBlur = 4 + 12 * p.depth;
-    ctx.fillStyle = 'hsla(' + p.hue + ', 55%, 22%, .9)';
-    ctx.strokeStyle = 'hsla(' + p.hue + ', 90%, 72%, .95)';
+    // as the window starts to stretch it turns to the black hole's pale yellow (#FFF4A8): outline and glow fully, the body part-way
+    var tm = clamp((sw2 - 0.03) / 0.5, 0, 1); tm = tm * tm * (3 - 2 * tm);
+    ctx.shadowColor = tint(p.hue, 90, 60, (0.15 + 0.35 * p.depth).toFixed(2), tm, 1); ctx.shadowBlur = 4 + 12 * p.depth;
+    ctx.fillStyle = tint(p.hue, 55, 22, '.9', tm, 0.7);
+    ctx.strokeStyle = tint(p.hue, 90, 72, '.95', tm, 1);
     ctx.lineWidth = 1.4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     trace(shape.body, true); ctx.fill(); ctx.stroke();
     ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';   // glow on the outline only, not on every detail
@@ -184,6 +194,62 @@
     ctx.restore();
   }
 
+
+  // ---- Sky: very rarely one of the page's own background stars twinkles, and now and then a shooting star crosses. Both are drawn behind the windows. ----
+  // Star positions are read from the page's CSS (the dots in the body background), so a twinkle always lands exactly on a star that is already there.
+  var skyStars = [];
+  (function () {
+    var bg = getComputedStyle(document.body).backgroundImage || '', re = /(\d*\.?\d+)px (\d*\.?\d+)px at (\d*\.?\d+)% (\d*\.?\d+)%, (rgba?\([^)]*\))/g, m;
+    while ((m = re.exec(bg))) { var c = m[5].match(/\d+/g); skyStars.push({ x: +m[3] / 100, y: +m[4] / 100, r: Math.max(+m[1], +m[2]), c: c.slice(0, 3).join(',') }); }
+  })();
+  var TWINKLE_LEN = 110;                                        // frames (about 1.8 s), a slow gentle swell
+  var twinkles = [], nextTwinkle = 420 + Math.random() * 480;   // first one after about 7-15 s, then one every 6-15 s
+  var shots = [], nextShot = 1500 + Math.random() * 1200;       // first shooting star after about 25-45 s, then one every 30-70 s
+  // Each one runs to its end on its own; several can overlap (the debug keys rely on that).
+  function addTwinkle() { if (skyStars.length) twinkles.push({ s: skyStars[(Math.random() * skyStars.length) | 0], t: 0 }); }
+  function addShot() {
+    var ang = (18 + Math.random() * 22) * Math.PI / 180, dir = Math.random() < 0.5 ? 1 : -1;   // shallow downward angle, left to right or right to left
+    shots.push({ x: (dir > 0 ? 0.05 + Math.random() * 0.45 : 0.95 - Math.random() * 0.45) * W, y: (0.05 + Math.random() * 0.4) * H,
+                 vx: Math.cos(ang) * dir, vy: Math.sin(ang), t: 0, len: 110 + Math.random() * 90, dur: 46 + Math.random() * 14 });
+  }
+  function drawSky(dt) {
+    var body = document.body.getBoundingClientRect();
+    if (!twinkles.length && (nextTwinkle -= dt) <= 0) { addTwinkle(); nextTwinkle = 360 + Math.random() * 540; }
+    twinkles = twinkles.filter(function (tw) {
+      tw.t += dt;
+      var u = tw.t / TWINKLE_LEN;
+      if (u >= 1) return false;
+      var s = tw.s, x = body.left + s.x * body.width, y = body.top + s.y * body.height, col = s.c;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      var e = Math.sin(Math.PI * u); e *= e;                  // soft rise and fall
+      var rad = 5 + 6 * e, gl = ctx.createRadialGradient(x, y, 0, x, y, rad);   // a clear but gentle swell: halo, brighter dot, and a faint little cross at the peak
+      gl.addColorStop(0, 'rgba(' + col + ',' + (0.4 * e).toFixed(3) + ')'); gl.addColorStop(1, 'rgba(' + col + ',0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, rad, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.95 * e).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(x, y, 1 + 0.9 * e, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(' + col + ',' + (0.45 * e).toFixed(3) + ')'; ctx.lineWidth = 0.8; ctx.lineCap = 'round';
+      var arm = 2 + 5 * e; ctx.beginPath(); ctx.moveTo(x - arm, y); ctx.lineTo(x + arm, y); ctx.moveTo(x, y - arm); ctx.lineTo(x, y + arm); ctx.stroke();
+      ctx.restore();
+      return true;
+    });
+    if (!shots.length && (nextShot -= dt) <= 0) { addShot(); nextShot = 1800 + Math.random() * 2400; }
+    shots = shots.filter(function (sh) {
+      sh.t += dt;
+      var q = sh.t / sh.dur;
+      if (q >= 1) return false;
+      var fa = Math.sin(Math.PI * q), dist = 560 * q * (2 - q) * 0.9;              // eases out as it burns away
+      var hx = sh.x + sh.vx * dist, hy = sh.y + sh.vy * dist, tl = sh.len * (0.4 + 0.6 * fa);
+      var tx = hx - sh.vx * tl, ty = hy - sh.vy * tl;
+      var lg = ctx.createLinearGradient(tx, ty, hx, hy);
+      lg.addColorStop(0, 'rgba(190,205,255,0)'); lg.addColorStop(0.7, 'rgba(225,232,255,' + (0.35 * fa).toFixed(3) + ')'); lg.addColorStop(1, 'rgba(255,255,255,' + (0.95 * fa).toFixed(3) + ')');
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+      ctx.strokeStyle = lg; ctx.lineWidth = 1.7; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hx, hy); ctx.stroke();
+      var hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, 6); hg.addColorStop(0, 'rgba(255,255,255,' + (0.8 * fa).toFixed(3) + ')'); hg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(hx, hy, 6, 0, TAU); ctx.fill();
+      ctx.restore();
+      return true;
+    });
+  }
+
   var last = performance.now();
   function frame(now) {
     var dt = Math.min(2.5, (now - last) / 16.667); last = now;
@@ -191,6 +257,7 @@
     locate();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
+    drawSky(dt);
     var live = [];
     tabs.forEach(function (p) {
       if (p.wait > 0) { p.wait -= dt; return; }
