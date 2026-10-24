@@ -22,6 +22,10 @@ header.nav a:hover{color:var(--fg)}
 .hero h1{font-size:clamp(20px,3.4vw,28px);line-height:1.1;margin:26px 0 30px;font-weight:500;color:var(--dim)}
 .hero p{color:var(--dim);font-size:19px;max-width:560px;margin:0 auto 28px}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a0b00;font-weight:600;padding:13px 26px;border-radius:999px;text-decoration:none}
+.btn{transition:filter .18s ease}
+.btn:hover,.btn:focus-visible{filter:brightness(1.3) saturate(1.1)}
+.btn:active{filter:brightness(1.15)}
+.btn:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .btn.off{opacity:.6;pointer-events:none}
 .btn.store{line-height:1.2}
 @supports (text-box:trim-both cap alphabetic){.btn.store{text-box:trim-both cap alphabetic;padding:21px 32px}}
@@ -165,10 +169,11 @@ canvas.floaters{position:fixed;left:0;top:0;z-index:0;pointer-events:none}
 .zen-btn:hover,.zen-btn:focus-visible{opacity:1;color:var(--fg);border-color:rgba(242,240,255,.6)}
 .zen-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .zen-tip{display:none;white-space:nowrap}
-.hero .wm,.hero h1,.hero .btn,.hero ~ footer{transition:opacity .6s ease,visibility 0s}
+.hero .wm,.hero h1,.hero ~ footer{transition:opacity .6s ease,visibility 0s}
+.hero .btn{transition:opacity .6s ease,visibility 0s,filter .18s ease}
 html.zen .hero .wm,html.zen .hero h1,html.zen .hero .btn,html.zen .hero ~ footer{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility 0s .6s}
 html.zen .zen-btn{opacity:.8}
 html.zen .zen-tip{display:inline}
 html.zen.zen-idle .zen-btn{opacity:0;pointer-events:none}
 html.zen.zen-idle{cursor:none}
-@media (prefers-reduced-motion:reduce){.hero .wm,.hero h1,.hero .btn,.hero ~ footer,.zen-btn{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.hero .wm,.hero h1,.hero .btn,.btn,.hero ~ footer,.zen-btn{transition:none!important}}
