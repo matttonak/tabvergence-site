@@ -177,3 +177,12 @@ html.zen .zen-tip{display:inline}
 html.zen.zen-idle .zen-btn{opacity:0;pointer-events:none}
 html.zen.zen-idle{cursor:none}
 @media (prefers-reduced-motion:reduce){.hero .wm,.hero h1,.hero .btn,.btn,.hero ~ footer,.zen-btn{transition:none!important}}
+
+/* landing intro text, below the one-screen hero; fades with the rest in zen mode */
+.intro{position:relative;max-width:640px;margin:0 auto;padding:56px 0 96px;transition:opacity .6s ease,visibility 0s}
+.intro h2{font-size:24px;line-height:1.25}
+.intro p,.intro li{color:var(--dim)}
+.intro li{margin:0 0 8px}
+.intro strong{color:var(--fg)}
+html.zen .intro{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility 0s .6s}
+@media (prefers-reduced-motion:reduce){.intro{transition:none!important}}
